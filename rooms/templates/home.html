@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Home | Room Finder{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Find Your Perfect Room 🏠</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-xl font-semibold">Total Rooms</h2>
+        <p class="text-3xl font-bold text-blue-600">{{ total_rooms }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-xl font-semibold">Popular Location</h2>
+        <p class="text-xl">{{ popular_location }}</p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow">
+        <h2 class="text-xl font-semibold">Popular Room Type</h2>
+        <p class="text-xl">{{ popular_type }}</p>
+    </div>
+</div>
+{% endblock %}

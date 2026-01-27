@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Rooms{% endblock %}
+
+{% block content %}
+
+<h1 class="text-3xl font-bold text-gray-800 mb-6">
+    Available Rooms
+</h1>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {% for room in rooms %}
+    <div class="bg-white rounded-lg shadow p-5">
+        <h2 class="text-xl font-semibold text-blue-600">
+            {{ room.title }}
+        </h2>
+
+        <p class="text-gray-600 mt-2">
+            Location: {{ room.location }}
+        </p>
+
+        <p class="text-gray-600">
+            Price: Rs. {{ room.price }} / month
+        </p>
+
+        <p class="text-gray-500 text-sm mt-2">
+            Type: {{ room.room_type }}
+        </p>
+
+        <a href="{% url 'room_detail' room.id %}"
+           class="inline-block mt-4 text-blue-600 hover:underline">
+            View Details →
+        </a>
+    </div>
+    {% empty %}
+    <p>No rooms available yet.</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
