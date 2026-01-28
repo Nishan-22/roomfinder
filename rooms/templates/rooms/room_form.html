@@ -1,22 +1,144 @@
 {% extends 'base.html' %}
 
-{% block title %}Add Room{% endblock %}
+{% block title %}List Your Space | RoomFinder{% endblock %}
 
 {% block content %}
+<div class="max-w-2xl mx-auto px-4 py-12 animate-fade-in">
+    
+    <div class="text-center mb-10">
+        <h1 class="text-4xl font-black text-gray-900 dark:text-white tracking-tight mb-3">
+            List Your <span class="text-blue-600">Space</span>
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400">
+            Fill in the details below to find your next perfect tenant.
+        </p>
+    </div> 
 
-<h1 class="text-2xl font-bold mb-6">Add New Room</h1>
+    <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 relative overflow-hidden transition-colors duration-300">
+        
+        <div class="flex justify-end mb-6">
+            <button id="theme-toggle" class="p-2 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-transparent dark:border-gray-600">
+                <span id="theme-toggle-dark-icon" class="hidden">🌙</span>
+                <span id="theme-toggle-light-icon" class="hidden">☀️</span>
+            </button>
+        </div>
 
-<form method="POST" enctype="multipart/form-data"
-      class="bg-white p-6 rounded-lg shadow space-y-4">
+        <form method="POST" enctype="multipart/form-data" class="relative z-10 space-y-6">
+            {% csrf_token %}
 
-    {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="bg-red-50 dark:bg-red-900/20 text-red-600 p-4 rounded-xl text-sm border border-red-100 dark:border-red-800">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
 
-    {{ form.as_p }}
+            <div class="space-y-5 custom-form">
+                {% for field in form %}
+                    <div class="flex flex-col space-y-2">
+                        <label class="text-sm font-bold text-gray-700 dark:text-gray-300 ml-1">
+                            {{ field.label }}
+                        </label>
+                        
+                        <div class="relative">
+                            {{ field }}
+                        </div>
 
-    <button type="submit"
-            class="bg-blue-600 text-white px-6 py-2 rounded-lg">
-        Post Room
-    </button>
-</form>
+                        {% if field.errors %}
+                            <p class="text-red-500 text-xs mt-1 font-medium">{{ field.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="pt-6">
+                <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-200 dark:shadow-none transition-all transform hover:-translate-y-1 active:scale-[0.98]">
+                    Publish Listing
+                </button>
+                
+                <a href="{% url 'room_list' %}" class="block text-center mt-6 text-sm font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    Cancel and go back
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .custom-form input, 
+    .custom-form textarea, 
+    .custom-form select {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        transition: all 0.3s;
+        outline: none;
+    }
+
+    .dark .custom-form input, 
+    .dark .custom-form textarea, 
+    .dark .custom-form select {
+        background-color: #111827;
+        border-color: #374151;
+        color: #f3f4f6;
+    }
+
+    .custom-form input:focus, 
+    .custom-form textarea:focus, 
+    .custom-form select:focus {
+        border-color: #2563eb;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .dark .custom-form input:focus, 
+    .dark .custom-form textarea:focus, 
+    .dark .custom-form select:focus {
+        background-color: #1f2937;
+        border-color: #3b82f6;
+    }
+</style>
+
+<script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const darkIcon = document.getElementById('theme-toggle-dark-icon');
+    const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+    // Sync icons and theme on load
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        if (lightIcon) lightIcon.classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('dark');
+        if (darkIcon) darkIcon.classList.remove('hidden');
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+
+            if (localStorage.getItem('color-theme')) {
+                if (localStorage.getItem('color-theme') === 'light') {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                }
+            } else {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                }
+            }
+        });
+    }
+</script>
 
 {% endblock %}

@@ -1,20 +1,152 @@
 {% extends 'base.html' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Join RoomFinder | Create Your Account{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+<div class="max-w-md mx-auto px-4 py-12 animate-fade-in">
+    
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-xl shadow-blue-200 dark:shadow-none mb-4">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+            Create Account
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">Join our community of hosts and seekers.</p>
+    </div>
 
-    <h1 class="text-2xl font-bold mb-6">Register</h1>
+    <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+        
+        <div class="flex justify-end mb-4">
+            <button id="theme-toggle" class="p-2 text-xs font-bold uppercase tracking-tighter bg-gray-50 dark:bg-gray-900 rounded-lg text-gray-400 hover:text-blue-600 transition-colors">
+                <span id="theme-toggle-dark-icon" class="hidden">🌙 Dark Mode</span>
+                <span id="theme-toggle-light-icon" class="hidden">☀️ Light Mode</span>
+            </button>
+        </div>
 
-    <form method="POST" class="space-y-4">
-        {% csrf_token %}
-        {{ form.as_p }}
+        <form method="POST" class="space-y-5 custom-form">
+            {% csrf_token %}
 
-        <button class="bg-green-600 text-white px-4 py-2 rounded-lg w-full">
-            Register
-        </button>
-    </form>
+            {% if form.errors %}
+                <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-xs border border-red-100 dark:border-red-900/30">
+                    Please correct the errors highlighted below.
+                </div>
+            {% endif %}
 
+           {% for field in form %}
+<div class="space-y-1">
+    <label class="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 ml-1">
+        {{ field.label }}
+    </label>
+    
+    <div class="relative">
+        {{ field }}
+    </div>
+
+    {% if field.errors %}
+        <p class="text-red-500 text-[10px] mt-1 font-semibold flex items-center">
+            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+            {{ field.errors.0 }}
+        </p>
+    {% endif %}
+
+    {% if field.help_text %}
+        <div class="mt-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-700">
+            <p class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-tighter mb-1">Requirements:</p>
+            <div class="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed space-y-1">
+                {{ field.help_text|safe }}
+            </div>
+        </div>
+    {% endif %}
 </div>
+{% endfor %}
+
+            <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-200 dark:shadow-none transition-all transform hover:-translate-y-1 active:scale-95 mt-6">
+                Get Started
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Already have an account? 
+                <a href="{% url 'login' %}" class="text-blue-600 dark:text-blue-400 font-bold hover:underline">Log in</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="text-center mt-8">
+        <p class="text-xs text-gray-400 px-8">
+            By registering, you agree to our <a href="#" class="underline">Terms of Service</a> and <a href="#" class="underline">Privacy Policy</a>.
+        </p>
+    </div>
+</div>
+
+<style>
+    /* Styled inputs for a consistent application feel */
+    .custom-form input {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        transition: all 0.3s;
+        outline: none;
+    }
+    .dark .custom-form input {
+        background-color: #111827;
+        border-color: #374151;
+        color: white;
+    }
+    .custom-form input:focus {
+        border-color: #2563eb;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+    .dark .custom-form input:focus {
+        background-color: #1f2937;
+    }
+</style>
+
+<script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const darkIcon = document.getElementById('theme-toggle-dark-icon');
+    const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+    // Check for saved theme or system preference
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        if (lightIcon) lightIcon.classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('dark');
+        if (darkIcon) darkIcon.classList.remove('hidden');
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+
+            if (localStorage.getItem('color-theme')) {
+                if (localStorage.getItem('color-theme') === 'light') {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                }
+            } else {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}

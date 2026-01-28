@@ -1,48 +1,76 @@
 {% extends 'base.html' %}
-
-{% block title %}Available Rooms{% endblock %}
+{% block title %}Explore Properties{% endblock %}
 
 {% block content %}
+<div class="max-w-6xl mx-auto px-4 py-12">
 
-<h1 class="text-3xl font-bold text-gray-800 mb-6">
-    Available Rooms
-</h1>
+    <!-- 🔍 SEARCH + FILTER BAR -->
+    <form method="GET" class="flex flex-col md:flex-row gap-4 mb-12 justify-center">
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Search -->
+        <input type="text" name="q" value="{{ search_query|default_if_none:'' }}"
+       placeholder="Search by title, location, apartment..."
+       class="px-5 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 w-full md:w-1/2 focus:ring-2 focus:ring-blue-500 outline-none">
 
-    {% for room in rooms %}
-    <div class="bg-white rounded-lg shadow p-5">
+        <!-- Property Type Filter -->
+        <select name="property" class="px-5 py-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <option value="">All Properties</option>
+            <option value="Room" {% if selected_property == "Room" %}selected{% endif %}>Room</option>
+            <option value="Apartment" {% if selected_property == "Apartment" %}selected{% endif %}>Apartment</option>
+            <option value="Hostel" {% if selected_property == "Hostel" %}selected{% endif %}>Hostel</option>
+        </select>
 
-        {% if room.image %}
-            <img src="{{ room.image.url }}" class="w-full h-40 object-cover rounded mb-3">
-        {% endif %}
+        <butto type="submit"
+                class="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition">
+            Search
+        </butto
+    </form>
 
-        <h2 class="text-xl font-semibold text-blue-600">
-            {{ room.title }}
-        </h2>
 
-        <p class="text-gray-600 mt-2">
-            Location: {{ room.location }}
+    <!-- 🏠 PROPERTY CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+
+        {% for room in rooms %}
+        <div class="group bg-white dark:bg-gray-800 rounded-3xl p-4 shadow-xl border hover:border-blue-500/30 transition hover:-translate-y-2">
+
+            <!-- Image -->
+            <div class="relative h-64 overflow-hidden rounded-2xl mb-6">
+                {% if room.image %}
+                    <img src="{{ room.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
+                {% else %}
+                    <div class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-gray-400">No Image</span>
+                    </div>
+                {% endif %}
+
+                <div class="absolute bottom-4 right-4 bg-white/80 dark:bg-gray-900/80 px-4 py-2 rounded-2xl shadow-lg">
+                    <span class="text-blue-600 font-bold">Rs. {{ room.price }}</span>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <span class="text-xs font-bold uppercase tracking-widest text-indigo-500">
+                {{ room.property_type }}
+            </span>
+
+            <h2 class="text-2xl font-bold mt-2 mb-2 group-hover:text-blue-600 transition">
+                {{ room.title }}
+            </h2>
+
+            <p class="text-gray-500 text-sm mb-1">📍 {{ room.location }}</p>
+            <p class="text-gray-500 text-sm mb-4">🛏 {{ room.room_type }}</p>
+
+            <a href="{% url 'room_detail' room.id %}"
+               class="block text-center py-3 bg-gray-100 dark:bg-gray-700 rounded-xl font-semibold hover:bg-blue-600 hover:text-white transition">
+                Explore Details
+            </a>
+        </div>
+        {% empty %}
+        <p class="col-span-full text-center text-gray-500 text-xl py-16">
+            No properties found 🛰️
         </p>
-
-        <p class="text-gray-600">
-            Price: Rs. {{ room.price }} / month
-        </p>
-
-        <p class="text-gray-500 text-sm mt-2">
-            Type: {{ room.room_type }}
-        </p>
-
-        <a href="{% url 'room_detail' room.id %}"
-           class="inline-block mt-4 text-blue-600 hover:underline">
-            View Details →
-        </a>
+        {% endfor %}
 
     </div>
-    {% empty %}
-    <p>No rooms available yet.</p>
-    {% endfor %}
-
 </div>
-
 {% endblock %}

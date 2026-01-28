@@ -1,20 +1,46 @@
-from django.shortcuts import render, get_object_or_404,redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from .models import Room
-from .forms import RoomForm
+from .forms import RoomForm, RegisterForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
+from django.contrib.auth.views import LoginView
+from django.db.models import Q
 
 
-# SHOW ALL ROOMS
 def room_list(request):
     rooms = Room.objects.all().order_by('-created_at')
-    return render(request, 'rooms/room_list.html', {'rooms': rooms})
+
+    search_query = request.GET.get('q')
+    property_type = request.GET.get('property')
+
+    # 🔥 FIX: ignore empty or "None"
+    if search_query and search_query.lower() != "none":
+        rooms = rooms.filter(
+            Q(title__icontains=search_query) |
+            Q(location__icontains=search_query) |
+            Q(property_type__icontains=search_query) |
+            Q(room_type__icontains=search_query)
+        )
+
+    if property_type:
+        rooms = rooms.filter(property_type__iexact=property_type)
+
+    context = {
+        'rooms': rooms,
+        'selected_property': property_type,
+        'search_query': search_query if search_query != "None" else "",
+    }
+    return render(request, 'rooms/room_list.html', context)
 
 
-# SHOW SINGLE ROOM
+
+# 🟢 PROPERTY DETAIL
 def room_detail(request, id):
     room = get_object_or_404(Room, id=id)
     return render(request, 'rooms/room_detail.html', {'room': room})
 
+
+# ➕ ADD PROPERTY
 @login_required
 def add_room(request):
     if request.method == 'POST':
@@ -29,6 +55,8 @@ def add_room(request):
 
     return render(request, 'rooms/room_form.html', {'form': form})
 
+
+# ✏ EDIT PROPERTY
 @login_required
 def edit_room(request, id):
     room = get_object_or_404(Room, id=id, owner=request.user)
@@ -43,6 +71,8 @@ def edit_room(request, id):
 
     return render(request, 'rooms/room_form.html', {'form': form})
 
+
+# ❌ DELETE PROPERTY
 @login_required
 def delete_room(request, id):
     room = get_object_or_404(Room, id=id, owner=request.user)
@@ -52,3 +82,29 @@ def delete_room(request, id):
         return redirect('room_list')
 
     return render(request, 'rooms/room_confirm_delete.html', {'room': room})
+
+
+# 👤 REGISTER
+def register(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = RegisterForm()
+
+    return render(request, 'auth/register.html', {'form': form})
+
+
+# 🔐 LOGIN VIEW
+class CustomLoginView(LoginView):
+    template_name = 'auth/login.html'
+
+
+# 🚪 LOGOUT CONFIRM
+def logout_confirm(request):
+    if request.method == "POST":
+        logout(request)
+        return redirect('login')
+    return render(request, 'auth/logout_confirm.html')

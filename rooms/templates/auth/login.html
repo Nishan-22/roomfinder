@@ -1,20 +1,135 @@
 {% extends 'base.html' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}Welcome Back | RoomFinder{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-6 rounded-xl shadow">
+<div class="max-w-md mx-auto px-4 py-16 animate-fade-in">
+    
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl shadow-xl shadow-blue-200 dark:shadow-none mb-4">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 00-2 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+        </div>
+        <h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+            Welcome Back
+        </h1>
+        <p class="text-gray-500 dark:text-gray-400 mt-2">Enter your credentials to access your account</p>
+    </div>
 
-    <h1 class="text-2xl font-bold mb-6">Login</h1>
+    <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] p-8 md:p-10 shadow-2xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700 transition-colors duration-300">
+        
+        <div class="flex justify-end mb-4">
+            <button id="theme-toggle" class="p-2 text-xs bg-gray-50 dark:bg-gray-900 rounded-lg hover:text-blue-600 transition-colors">
+                <span id="theme-toggle-dark-icon" class="hidden">🌙 Dark</span>
+                <span id="theme-toggle-light-icon" class="hidden">☀️ Light</span>
+            </button>
+        </div>
 
-    <form method="POST" class="space-y-4">
-        {% csrf_token %}
-        {{ form.as_p }}
+        <form method="POST" class="space-y-5 custom-form">
+            {% csrf_token %}
 
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg w-full">
-            Login
-        </button>
-    </form>
+            {% if form.errors %}
+                <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm border border-red-100 dark:border-red-900/30">
+                    Your username or password was incorrect.
+                </div>
+            {% endif %}
 
+            {% for field in form %}
+            <div class="space-y-1">
+                <label class="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 ml-1">
+                    {{ field.label }}
+                </label>
+                <div class="relative">
+                    {{ field }}
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-200 dark:shadow-none transition-all transform hover:-translate-y-1 active:scale-95 mt-4">
+                Sign In
+            </button>
+        </form>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                Don't have an account? 
+                <a href="{% url 'register' %}" class="text-blue-600 dark:text-blue-400 font-bold hover:underline">Create one</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="text-center mt-8">
+        <a href="{% url 'room_list' %}" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+            ← Back to Gallery
+        </a>
+    </div>
 </div>
+
+<style>
+    /* Consistency with your Add Room styling */
+    .custom-form input {
+        width: 100%;
+        padding: 0.85rem 1.25rem;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 1rem;
+        transition: all 0.3s;
+        outline: none;
+    }
+    .dark .custom-form input {
+        background-color: #111827;
+        border-color: #374151;
+        color: white;
+    }
+    .custom-form input:focus {
+        border-color: #2563eb;
+        background-color: white;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+    .dark .custom-form input:focus {
+        background-color: #1f2937;
+    }
+</style>
+
+<script>
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const darkIcon = document.getElementById('theme-toggle-dark-icon');
+    const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+    // Check for saved theme or system preference
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        if (lightIcon) lightIcon.classList.remove('hidden');
+    } else {
+        document.documentElement.classList.remove('dark');
+        if (darkIcon) darkIcon.classList.remove('hidden');
+    }
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+
+            if (localStorage.getItem('color-theme')) {
+                if (localStorage.getItem('color-theme') === 'light') {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                }
+            } else {
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                }
+            }
+        });
+    }
+</script>
 {% endblock %}
