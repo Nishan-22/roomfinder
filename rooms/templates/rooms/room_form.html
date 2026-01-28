@@ -3,37 +3,20 @@
 {% block title %}Add Room{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow">
 
-    <h1 class="text-2xl font-bold mb-6">
-        {{ form.instance.pk|yesno:"Edit Room,Add Room" }}
-    </h1>
+<h1 class="text-2xl font-bold mb-6">Add New Room</h1>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
-        {% csrf_token %}
+<form method="POST" enctype="multipart/form-data"
+      class="bg-white p-6 rounded-lg shadow space-y-4">
 
-        {% for field in form %}
-            <div>
-                <label class="block font-medium mb-1">{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                    <p class="text-red-500 text-sm">{{ field.errors }}</p>
-                {% endif %}
-            </div>
-        {% endfor %}
+    {% csrf_token %}
 
-        <!-- Multiple Images -->
-        <div>
-            <label class="block font-medium mb-1">Room Images</label>
-            <input type="file" name="images" multiple
-                   class="w-full border rounded px-3 py-2">
-        </div>
+    {{ form.as_p }}
 
-        <button type="submit"
-                class="bg-blue-600 text-white px-6 py-2 rounded-lg">
-            Save
-        </button>
-    </form>
+    <button type="submit"
+            class="bg-blue-600 text-white px-6 py-2 rounded-lg">
+        Post Room
+    </button>
+</form>
 
-</div>
 {% endblock %}

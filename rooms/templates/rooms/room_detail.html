@@ -10,6 +10,11 @@
         {{ room.title }}
     </h1>
 
+    {% if room.image %}
+        <img src="{{ room.image.url }}" 
+             class="w-full h-64 object-cover rounded mb-4">
+    {% endif %}
+
     <p class="text-gray-600 mb-2">
         Location: {{ room.location }}
     </p>
@@ -32,6 +37,20 @@
         <p>Phone: {{ room.contact_number }}</p>
         <p>Available From: {{ room.available_from }}</p>
     </div>
+    {% if request.user == room.owner %}
+<div class="mt-6 space-x-4">
+    <a href="{% url 'edit_room' room.id %}"
+       class="bg-yellow-500 text-white px-4 py-2 rounded">
+        Edit
+    </a>
+
+    <a href="{% url 'delete_room' room.id %}"
+       class="bg-red-600 text-white px-4 py-2 rounded">
+        Delete
+    </a>
+</div>
+{% endif %}
+
 
 </div>
 

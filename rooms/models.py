@@ -25,6 +25,8 @@ class Room(models.Model):
     contact_number = models.CharField(max_length=15)
     available_from = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to='rooms/', blank=True, null=True)
+
 
     def __str__(self):
         return self.title
