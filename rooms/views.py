@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
+from django.http import HttpResponseRedirect
 
 
 def room_list(request):
@@ -45,14 +46,13 @@ def room_detail(request, id):
 def add_room(request):
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES)
-        images = request.FILES.getlist('gallery_images')  # ✅ FIXED
+        images = request.FILES.getlist('gallery_images')
 
         if form.is_valid():
             room = form.save(commit=False)
             room.owner = request.user
             room.save()
 
-            # Save ALL uploaded images
             for img in images:
                 RoomImage.objects.create(room=room, image=img)
 
@@ -70,13 +70,19 @@ def edit_room(request, id):
 
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES, instance=room)
-        images = request.FILES.getlist('gallery_images')  # ✅ FIXED
+        images = request.FILES.getlist('gallery_images')
 
         if form.is_valid():
             form.save()
 
+            # ✅ ADD NEW IMAGES
             for img in images:
                 RoomImage.objects.create(room=room, image=img)
+
+            # ✅ DELETE CHECKED IMAGES
+            delete_ids = request.POST.getlist('delete_images')
+            if delete_ids:
+                RoomImage.objects.filter(id__in=delete_ids, room=room).delete()
 
             return redirect('room_detail', id=room.id)
     else:

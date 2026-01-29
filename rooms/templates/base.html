@@ -3,20 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Room Finder{% endblock %}</title>
+    <title>{% block title %}RoomFinder | Premium Living{% endblock %}</title>
 
-    <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>
+        tailwind.config = { 
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#eff6ff', 100: '#dbeafe', 600: '#2563eb', 700: '#1d4ed8' }
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
 
-        /* Navbar underline effect */
+        /* Custom Progress Bar */
+        #progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, #2563eb, #818cf8);
+            z-index: 100;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Nav Link Underline */
         .nav-link {
             position: relative;
             transition: color 0.3s;
@@ -26,94 +48,181 @@
             position: absolute;
             width: 0%;
             height: 2px;
-            bottom: -6px;
+            bottom: -4px;
             left: 0;
-            background: linear-gradient(to right, #2563eb, #4f46e5);
+            background: #2563eb;
             transition: width 0.3s ease;
         }
-        .nav-link:hover::after {
-            width: 100%;
+        .nav-link:hover::after { width: 100%; }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.7);
         }
     </style>
 </head>
 
-<body class="bg-[#f8fafc] dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen">
+<body class="bg-[#f8fafc] dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen font-sans">
 
-<!-- 🌟 PREMIUM NAVBAR -->
-<header id="navbar" class="sticky top-0 z-50 transition-all duration-500 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-transparent">
-    <nav class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+<div id="loader-bar"></div>
 
-        <a href="{% url 'room_list' %}" class="text-2xl font-black tracking-tight text-blue-600">
+{% if messages %}
+<div class="fixed top-24 right-6 z-[100] space-y-3">
+    {% for message in messages %}
+    <div class="toast-message flex items-center p-4 bg-white dark:bg-gray-800 border-l-4 border-blue-600 shadow-2xl rounded-2xl animate-fade-in min-w-[280px]">
+        <div class="flex-1 mr-4">
+            <p class="text-sm font-bold">{{ message }}</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 transition-colors">✕</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<header id="navbar" class="sticky top-0 z-50 transition-all duration-500 border-b border-transparent">
+    <nav class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        
+        <a href="{% url 'room_list' %}" class="text-2xl font-black tracking-tighter text-blue-600 flex items-center group">
+            <span class="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center mr-2 group-hover:rotate-12 transition-transform">R</span>
             RoomFinder
         </a>
 
-        <div class="hidden md:flex items-center space-x-10 text-sm font-semibold">
+        <div class="hidden md:flex items-center space-x-8 text-sm font-bold uppercase tracking-tight">
             <a href="{% url 'room_list' %}" class="nav-link">Explore</a>
             {% if user.is_authenticated %}
-                <!-- <a href="{% url 'add_room' %}" class="nav-link">Host Room</a>
+                <a href="{% url 'dashboard' %}" class="nav-link">My Listings</a>
+                <a href="{% url 'add_room' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-2xl transition-all shadow-lg shadow-blue-200 dark:shadow-none hover:-translate-y-0.5">
+                    + Host Room
+                </a>
             {% endif %}
-        </div> -->
-{% if user.is_authenticated %}
-    <a href="{% url 'dashboard' %}" class="hover:text-blue-500">My listings</a>
-{% endif %}
+        </div>
 
         <div class="flex items-center space-x-4">
-            <button id="theme-toggle" class="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:scale-110 transition">
-                🌙
+            <button id="theme-toggle" class="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all active:scale-90">
+                <span id="theme-toggle-dark-icon" class="hidden text-lg">🌙</span>
+                <span id="theme-toggle-light-icon" class="hidden text-lg">☀️</span>
             </button>
 
             {% if user.is_authenticated %}
-                <span class="hidden sm:block text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-4 py-1.5 rounded-full shadow-md">
-                    {{ user.username }}
-                </span>
-
-                <a href="{% url 'logout' %}" 
-   class="text-red-500 hover:text-red-600 text-sm font-bold">
-   Logout
-</a>
-
+                <div class="hidden sm:flex flex-col items-end mr-2">
+                    <span class="text-[10px] uppercase font-black text-blue-600 tracking-widest">Active User</span>
+                    <span class="text-sm font-bold">{{ user.username }}</span>
+                </div>
+                <form action="{% url 'logout' %}" method="post" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="text-xs font-black uppercase text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-2 rounded-lg transition-colors">Logout</button>
+                </form>
             {% else %}
-                <a href="{% url 'login' %}" class="text-sm font-bold hover:text-blue-500">Login</a>
+                <a href="{% url 'login' %}" class="text-sm font-black text-gray-700 dark:text-gray-300 hover:text-blue-600">Login</a>
+                <a href="{% url 'register' %}" class="hidden sm:block text-sm font-black bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-2.5 rounded-2xl">Join</a>
+            {% endif %}
+
+            <button id="mobile-toggle" class="md:hidden p-2 text-gray-600 dark:text-gray-300">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <div id="mobile-menu" class="fixed inset-0 bg-white dark:bg-gray-950 z-[100] translate-x-full transition-transform duration-300 md:hidden p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-12">
+            <span class="text-2xl font-black text-blue-600">Menu</span>
+            <button id="mobile-close" class="text-3xl">&times;</button>
+        </div>
+        <div class="flex flex-col space-y-8 text-2xl font-black">
+            <a href="{% url 'room_list' %}">Explore</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">My Listings</a>
+                <a href="{% url 'add_room' %}" class="text-blue-600">+ Host Room</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}">Create Account</a>
             {% endif %}
         </div>
-        
-
-    </nav>
+    </div>
 </header>
 
-<!-- PAGE CONTENT -->
-<main class="pb-12">
+<main class="min-h-[80vh]">
     {% block content %}{% endblock %}
 </main>
 
-<footer class="text-center py-10 opacity-30 text-xs tracking-widest uppercase">
-    © 2026 RoomFinder / Premium Living
+<footer class="border-t border-gray-100 dark:border-gray-900 mt-20">
+    <div class="max-w-7xl mx-auto px-6 py-12 flex flex-col items-center">
+        <p class="text-xs font-black uppercase tracking-[0.3em] text-gray-400">© 2026 RoomFinder Ecosystem</p>
+        <div class="flex space-x-6 mt-6 opacity-50 grayscale hover:grayscale-0 transition-all">
+            <span class="text-xs font-bold uppercase tracking-widest">Designed for Excellence</span>
+        </div>
+    </div>
 </footer>
 
-<!-- ⚡ Navbar scroll animation + Dark mode -->
 <script>
-const navbar = document.getElementById("navbar");
+    // --- Navbar Scroll Logic ---
+    const navbar = document.getElementById("navbar");
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 20) {
+            navbar.classList.add("glass", "shadow-xl", "shadow-blue-500/5", "py-2");
+            navbar.classList.remove("py-4");
+        } else {
+            navbar.classList.remove("glass", "shadow-xl", "shadow-blue-500/5", "py-2");
+            navbar.classList.add("py-4");
+        }
+    });
 
-window.addEventListener("scroll", () => {
-    if (window.scrollY > 20) {
-        navbar.classList.add("shadow-lg", "backdrop-blur-xl", "bg-white/90", "dark:bg-gray-900/90");
-    } else {
-        navbar.classList.remove("shadow-lg", "backdrop-blur-xl", "bg-white/90", "dark:bg-gray-900/90");
+    // --- Dark Mode Logic ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const darkIcon = document.getElementById('theme-toggle-dark-icon');
+    const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+    function syncIcons() {
+        if (document.documentElement.classList.contains('dark')) {
+            lightIcon.classList.remove('hidden');
+            darkIcon.classList.add('hidden');
+        } else {
+            darkIcon.classList.remove('hidden');
+            lightIcon.classList.add('hidden');
+        }
     }
-});
 
-const themeToggleBtn = document.getElementById('theme-toggle');
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+    }
+    syncIcons();
 
-if (localStorage.getItem('color-theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-}
+    themeToggleBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        syncIcons();
+    });
 
-themeToggleBtn.addEventListener('click', () => {
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('color-theme',
-        document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    );
-});
+    // --- Mobile Menu ---
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const mobileClose = document.getElementById('mobile-close');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    mobileToggle.addEventListener('click', () => mobileMenu.classList.remove('translate-x-full'));
+    mobileClose.addEventListener('click', () => mobileMenu.classList.add('translate-x-full'));
+
+    // --- Progress Bar Loader ---
+    window.onbeforeunload = function() {
+        const bar = document.createElement('div');
+        bar.id = 'progress-bar';
+        document.body.appendChild(bar);
+        setTimeout(() => bar.style.width = '80%', 10);
+    };
+
+    // --- Auto-Hide Toasts ---
+    setTimeout(() => {
+        document.querySelectorAll('.toast-message').forEach(el => {
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 600);
+        });
+    }, 4000);
 </script>
 
 </body>
