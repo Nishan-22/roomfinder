@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Room(models.Model):
 
     PROPERTY_TYPE_CHOICES = [
@@ -25,8 +26,7 @@ class Room(models.Model):
     ]
 
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    
-    # 🔥 NEW FIELD
+
     property_type = models.CharField(
         max_length=20,
         choices=PROPERTY_TYPE_CHOICES,
@@ -44,7 +44,17 @@ class Room(models.Model):
     available_from = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # ⭐ COVER IMAGE (main image)
     image = models.ImageField(upload_to='rooms/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.property_type} - {self.title}"
+
+
+# 🖼 MULTIPLE IMAGES MODEL (Gallery)
+class RoomImage(models.Model):
+    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='rooms/gallery/')
+
+    def __str__(self):
+        return f"Image for {self.room.title}"

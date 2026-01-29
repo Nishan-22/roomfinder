@@ -17,4 +17,5 @@ urlpatterns = [
 
     # CUSTOM LOGOUT WITH CONFIRMATION PAGE
     path('logout/', views.logout_confirm, name='logout'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]

@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Room
+from .models import Room,RoomImage
 from .forms import RoomForm, RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
@@ -45,10 +45,17 @@ def room_detail(request, id):
 def add_room(request):
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES)
+        images = request.FILES.getlist('gallery_images')  # ✅ FIXED
+
         if form.is_valid():
             room = form.save(commit=False)
             room.owner = request.user
             room.save()
+
+            # Save ALL uploaded images
+            for img in images:
+                RoomImage.objects.create(room=room, image=img)
+
             return redirect('room_list')
     else:
         form = RoomForm()
@@ -63,14 +70,19 @@ def edit_room(request, id):
 
     if request.method == 'POST':
         form = RoomForm(request.POST, request.FILES, instance=room)
+        images = request.FILES.getlist('gallery_images')  # ✅ FIXED
+
         if form.is_valid():
             form.save()
+
+            for img in images:
+                RoomImage.objects.create(room=room, image=img)
+
             return redirect('room_detail', id=room.id)
     else:
         form = RoomForm(instance=room)
 
     return render(request, 'rooms/room_form.html', {'form': form})
-
 
 # ❌ DELETE PROPERTY
 @login_required
@@ -108,3 +120,14 @@ def logout_confirm(request):
         logout(request)
         return redirect('login')
     return render(request, 'auth/logout_confirm.html')
+
+
+@login_required
+def dashboard(request):
+    my_properties = Room.objects.filter(owner=request.user).order_by('-created_at')
+
+    context = {
+        'my_properties': my_properties
+    }
+    return render(request, 'rooms/dashboard.html', context)
+
