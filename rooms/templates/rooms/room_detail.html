@@ -17,36 +17,45 @@
         <!-- LEFT SIDE -->
         <div class="lg:col-span-2 space-y-8">
 
-            <!-- COVER IMAGE -->
-            <div class="relative group overflow-hidden rounded-3xl shadow-2xl">
-                {% if room.image %}
-                    <img src="{{ room.image.url }}" class="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-105">
-                {% else %}
-                    <div class="w-full h-[450px] bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-                        <span class="text-gray-400">No cover image</span>
-                    </div>
-                {% endif %}
-                <div class="absolute top-6 left-6">
-                    <span class="bg-blue-600 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">
-                        {{ room.room_type }}
-                    </span>
-                </div>
-            </div>
+           <!-- COVER IMAGE -->
+<div class="relative group overflow-hidden rounded-3xl shadow-2xl">
+    {% if room.image %}
+        <img src="{{ room.image.url }}" 
+             alt="{{ room.title }}"
+             loading="lazy"
+             class="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-105">
+    {% else %}
+        <div class="w-full h-[450px] bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+            <span class="text-gray-400">No cover image</span>
+        </div>
+    {% endif %}
 
-            <!-- GALLERY -->
-            {% if room.images.all %}
-            <div>
-                <h3 class="text-xl font-bold mb-4">Gallery</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    {% for img in room.images.all %}
-                        <div class="overflow-hidden rounded-2xl group cursor-pointer">
-                            <img src="{{ img.image.url }}" class="w-full h-40 object-cover group-hover:scale-110 transition duration-500">
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
+    <div class="absolute top-6 left-6">
+        <span class="bg-blue-600 text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full shadow-lg">
+            {{ room.room_type }}
+        </span>
+    </div>
+</div>
 
+
+<!-- GALLERY -->
+{% if room.images.exists %}
+<div class="mt-10">
+    <h3 class="text-xl font-bold mb-4">Gallery</h3>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {% for img in room.images.all %}
+        <div class="overflow-hidden rounded-2xl cursor-pointer group"
+             onclick="openImage('{{ img.image.url }}')">
+            <img src="{{ img.image.url }}"
+                 alt="Room image"
+                 loading="lazy"
+                 class="w-full h-40 object-cover group-hover:scale-110 transition duration-500">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
             <!-- TITLE -->
             <div>
                 <h1 class="text-4xl font-black mb-4">{{ room.title }}</h1>
@@ -125,6 +134,10 @@
         </div>
     </div>
 </div>
+<div id="imgModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center z-50">
+    <span onclick="closeImage()" class="absolute top-6 right-10 text-white text-4xl cursor-pointer">&times;</span>
+    <img id="modalImg" class="max-h-[90%] max-w-[90%] rounded-2xl shadow-2xl">
+</div>
 
 <script>
 const deleteBtn = document.getElementById("deleteBtn");
@@ -145,6 +158,18 @@ cancelDelete?.addEventListener("click", () => {
 confirmDelete?.addEventListener("click", () => {
     deleteForm.submit();
 });
+
+function openImage(src) {
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("modalImg");
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    modalImg.src = src;
+}
+
+function closeImage() {
+    document.getElementById("imgModal").classList.add("hidden");
+}
 </script>
 
 {% endblock %}

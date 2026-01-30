@@ -8,8 +8,9 @@ class RoomForm(forms.ModelForm):
     class Meta:
         model = Room
         exclude = ['owner', 'created_at']
-
-
+        widgets = {
+            'available_from': forms.DateInput(attrs={'type': 'date'})
+        }
 class RegisterForm(UserCreationForm):
     email = forms.EmailField()
 
