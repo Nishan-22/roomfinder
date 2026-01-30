@@ -2,15 +2,43 @@ import os
 from pathlib import Path
 import dj_database_url
 import cloudinary
-
-cloudinary.config(
-    cloud_name=os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    api_key=os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret=os.environ.get('CLOUDINARY_API_SECRET'),
-    secure=True,
-)
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Cloudinary credentials (required on Render for images to show)
+# Support either three env vars or single CLOUDINARY_URL (e.g. cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
+_clou_url = os.environ.get('CLOUDINARY_URL')
+if _clou_url and _clou_url.startswith('cloudinary://'):
+    try:
+        # format: cloudinary://api_key:api_secret@cloud_name
+        _parts = _clou_url.replace('cloudinary://', '').split('@')
+        _key_secret = _parts[0].split(':', 1)
+        CLOUDINARY_API_KEY = _key_secret[0]
+        CLOUDINARY_API_SECRET = _key_secret[1] if len(_key_secret) > 1 else ''
+        CLOUDINARY_CLOUD_NAME = _parts[1] if len(_parts) > 1 else ''
+    except Exception:
+        CLOUDINARY_CLOUD_NAME = CLOUDINARY_API_KEY = CLOUDINARY_API_SECRET = None
+else:
+    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
+    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+USE_CLOUDINARY = all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET])
+
+if os.environ.get('RENDER') and not USE_CLOUDINARY:
+    raise ImproperlyConfigured(
+        'On Render, set Environment Variables in Dashboard: '
+        'CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET. '
+        'Get them from https://cloudinary.com/console'
+    )
+
+if USE_CLOUDINARY:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True,
+    )
 
 # ======================
 # SECURITY
@@ -22,22 +50,21 @@ ALLOWED_HOSTS = ['*']  # or your render domain
 # ======================
 # APPLICATIONS
 # ======================
+# cloudinary_storage must come BEFORE django.contrib.staticfiles (per django-cloudinary-storage docs)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
 
     'whitenoise.runserver_nostatic',
 
     # Your app
     'rooms',
-
-    # Cloudinary
-    'cloudinary',
-    'cloudinary_storage',
 ]
 
 # ======================
@@ -111,15 +138,20 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # ======================
-# CLOUDINARY MEDIA STORAGE
+# CLOUDINARY MEDIA STORAGE (images on Render)
 # ======================
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
-}
-
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+if USE_CLOUDINARY:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
+        'SECURE': True,
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+else:
+    # Local dev fallback when env vars not set
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ======================
