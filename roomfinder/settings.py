@@ -141,6 +141,10 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Whitenoise settings
+# This is required to ignore missing files referenced in CSS (like admin/img/icon-debug-dark.svg)
+WHITENOISE_MANIFEST_STRICT = False
+
 # ======================
 # CLOUDINARY MEDIA STORAGE (images on Render)
 # ======================
