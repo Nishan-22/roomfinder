@@ -144,6 +144,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # ======================
 # CLOUDINARY MEDIA STORAGE (images on Render)
 # ======================
+# Django 4.2+ uses STORAGES; DEFAULT_FILE_STORAGE is ignored, so set STORAGES['default'].
 if USE_CLOUDINARY:
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
@@ -151,7 +152,14 @@ if USE_CLOUDINARY:
         'API_SECRET': CLOUDINARY_API_SECRET,
         'SECURE': True,
     }
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        'default': {
+            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+        },
+    }
 else:
     # Local dev fallback when env vars not set
     MEDIA_URL = '/media/'
