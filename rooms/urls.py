@@ -18,5 +18,7 @@ urlpatterns = [
     # CUSTOM LOGOUT WITH CONFIRMATION PAGE
     path('logout/', views.logout_confirm, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
-    
+
+    # Debug: visit on Render to confirm Cloudinary is active (remove in production if desired)
+    path('storage-check/', views.storage_check, name='storage_check'),
 ]

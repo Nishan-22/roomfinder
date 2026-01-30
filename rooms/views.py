@@ -5,6 +5,8 @@ from django.contrib.auth.views import LoginView
 from django.db.models import Q
 from django.http import HttpResponse
 from django.core.files.storage import default_storage
+from django.conf import settings
+from django.contrib import messages
 from .models import Room, RoomImage
 from .forms import RoomForm, RegisterForm
 
@@ -49,17 +51,26 @@ def add_room(request):
         images = request.FILES.getlist('gallery_images')
 
         if form.is_valid():
-            room = form.save(commit=False)
-            room.owner = request.user
-            room.save()
+            try:
+                room = form.save(commit=False)
+                room.owner = request.user
+                room.save()
 
-            # Save gallery images
-            for img in images:
-                RoomImage.objects.create(room=room, image=img)
+                # Save gallery images
+                for img in images:
+                    RoomImage.objects.create(room=room, image=img)
 
-            return redirect('room_list')
+                return redirect('room_list')
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"Image upload failed. Check Render logs. Error: {str(e)[:200]}"
+                )
         else:
             print(form.errors)  # DEBUG if something fails
+            for field, errs in form.errors.items():
+                for err in errs:
+                    messages.error(request, f"{field}: {err}")
 
     else:
         form = RoomForm()
@@ -77,20 +88,29 @@ def edit_room(request, id):
         images = request.FILES.getlist('gallery_images')
 
         if form.is_valid():
-            form.save()
+            try:
+                form.save()
 
-            # Add new images
-            for img in images:
-                RoomImage.objects.create(room=room, image=img)
+                # Add new images
+                for img in images:
+                    RoomImage.objects.create(room=room, image=img)
 
-            # Delete checked images
-            delete_ids = request.POST.getlist('delete_images')
-            if delete_ids:
-                RoomImage.objects.filter(id__in=delete_ids, room=room).delete()
+                # Delete checked images
+                delete_ids = request.POST.getlist('delete_images')
+                if delete_ids:
+                    RoomImage.objects.filter(id__in=delete_ids, room=room).delete()
 
-            return redirect('room_detail', id=room.id)
+                return redirect('room_detail', id=room.id)
+            except Exception as e:
+                messages.error(
+                    request,
+                    f"Image upload failed. Check Render logs. Error: {str(e)[:200]}"
+                )
         else:
             print(form.errors)
+            for field, errs in form.errors.items():
+                for err in errs:
+                    messages.error(request, f"{field}: {err}")
 
     else:
         form = RoomForm(instance=room)
@@ -149,3 +169,16 @@ def dashboard(request):
 
 def test_storage(request):
     return HttpResponse(str(default_storage))
+
+
+# Debug: check if Cloudinary is active on Render (visit /storage-check/ on live site)
+def storage_check(request):
+    use_clou = getattr(settings, 'USE_CLOUDINARY', False)
+    storage_cls = default_storage.__class__.__name__
+    cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', '') or '(not set)'
+    text = (
+        f"USE_CLOUDINARY: {use_clou}\n"
+        f"DEFAULT_FILE_STORAGE class: {storage_cls}\n"
+        f"CLOUDINARY_CLOUD_NAME: {cloud_name}\n"
+    )
+    return HttpResponse(text, content_type='text/plain')

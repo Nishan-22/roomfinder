@@ -69,6 +69,15 @@
 </header>
 
 <main class="min-h-[80vh]">
+    {% if messages %}
+    <div class="max-w-4xl mx-auto px-4 py-2">
+        {% for message in messages %}
+        <div class="mb-2 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800{% else %}bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 border border-blue-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% block content %}{% endblock %}
 </main>
 
