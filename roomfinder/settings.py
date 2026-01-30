@@ -8,21 +8,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Cloudinary credentials (required on Render for images to show)
 # Support either three env vars or single CLOUDINARY_URL (e.g. cloudinary://API_KEY:API_SECRET@CLOUD_NAME)
-_clou_url = os.environ.get('CLOUDINARY_URL')
+# Strip values so trailing/leading spaces from Render env don't break URLs
+def _strip(s):
+    return (s or '').strip() or None
+
+_clou_url = _strip(os.environ.get('CLOUDINARY_URL'))
 if _clou_url and _clou_url.startswith('cloudinary://'):
     try:
         # format: cloudinary://api_key:api_secret@cloud_name
         _parts = _clou_url.replace('cloudinary://', '').split('@')
         _key_secret = _parts[0].split(':', 1)
-        CLOUDINARY_API_KEY = _key_secret[0]
-        CLOUDINARY_API_SECRET = _key_secret[1] if len(_key_secret) > 1 else ''
-        CLOUDINARY_CLOUD_NAME = _parts[1] if len(_parts) > 1 else ''
+        CLOUDINARY_API_KEY = _strip(_key_secret[0])
+        CLOUDINARY_API_SECRET = _strip(_key_secret[1]) if len(_key_secret) > 1 else None
+        CLOUDINARY_CLOUD_NAME = _strip(_parts[1]) if len(_parts) > 1 else None
     except Exception:
         CLOUDINARY_CLOUD_NAME = CLOUDINARY_API_KEY = CLOUDINARY_API_SECRET = None
 else:
-    CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
-    CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
-    CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
+    CLOUDINARY_CLOUD_NAME = _strip(os.environ.get('CLOUDINARY_CLOUD_NAME'))
+    CLOUDINARY_API_KEY = _strip(os.environ.get('CLOUDINARY_API_KEY'))
+    CLOUDINARY_API_SECRET = _strip(os.environ.get('CLOUDINARY_API_SECRET'))
 USE_CLOUDINARY = all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET])
 
 if os.environ.get('RENDER') and not USE_CLOUDINARY:

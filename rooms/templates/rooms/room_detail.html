@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load cloudinary_helpers %}
 
 {% block title %}{{ room.title }} | RoomFinder{% endblock %}
 
@@ -20,7 +21,7 @@
            <!-- COVER IMAGE -->
 <div class="relative group overflow-hidden rounded-3xl shadow-2xl">
     {% if room.image %}
-        <img src="{{ room.image.url }}" 
+        <img src="{% cloudinary_image_url room.image %}" 
              alt="{{ room.title }}"
              loading="lazy"
              class="w-full h-[450px] object-cover transition-transform duration-700 group-hover:scale-105">
@@ -46,8 +47,8 @@
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         {% for img in room.images.all %}
         <div class="overflow-hidden rounded-2xl cursor-pointer group"
-             onclick="openImage('{{ img.image.url }}')">
-            <img src="{{ img.image.url }}"
+             onclick="openImage('{% cloudinary_image_url img.image %}')">
+            <img src="{% cloudinary_image_url img.image %}"
                  alt="Room image"
                  loading="lazy"
                  class="w-full h-40 object-cover group-hover:scale-110 transition duration-500">
