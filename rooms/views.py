@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
-
+from django.http import HttpResponse
+from django.core.files.storage import default_storage
 from .models import Room, RoomImage
 from .forms import RoomForm, RegisterForm
 
@@ -144,3 +145,7 @@ def dashboard(request):
         'my_properties': my_properties
     }
     return render(request, 'rooms/dashboard.html', context)
+
+
+def test_storage(request):
+    return HttpResponse(str(default_storage))
