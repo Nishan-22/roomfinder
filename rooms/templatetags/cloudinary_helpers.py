@@ -11,12 +11,15 @@ register = template.Library()
 @register.simple_tag
 def cloudinary_image_url(image_field):
     """
-    Return the image URL. When Cloudinary is configured, always build the full
-    Cloudinary URL so img src never points to the app domain (e.g. Render).
+    Return the image URL. Use storage's URL when possible; if it's relative
+    (e.g. on Render), build full Cloudinary URL so images load.
     """
     if not image_field:
         return ''
-    if getattr(settings, 'USE_CLOUDINARY', False):
-        from cloudinary import CloudinaryResource
-        return CloudinaryResource(image_field.name).url
-    return image_field.url
+    url = image_field.url
+    # If storage returned a relative path, build full Cloudinary URL
+    if getattr(settings, 'USE_CLOUDINARY', False) and url.startswith('/'):
+        cloud_name = getattr(settings, 'CLOUDINARY_CLOUD_NAME', None)
+        if cloud_name:
+            url = f'https://res.cloudinary.com/{cloud_name}/image/upload/{url.lstrip("/")}'
+    return url
