@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ======================
 SECRET_KEY = os.environ.get('SECRET_KEY', 'unsafe-secret-key')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['*']  # Render domain allowed
+ALLOWED_HOSTS = ['*']  # or your render domain
 
 # ======================
 # APPLICATIONS
@@ -21,8 +21,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'whitenoise.runserver_nostatic',
+
+    # Your app
     'rooms',
+
+    # Cloudinary
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 # ======================
@@ -31,6 +38,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -59,13 +67,13 @@ TEMPLATES = [
 WSGI_APPLICATION = 'roomfinder.wsgi.application'
 
 # ======================
-# DATABASE (Render PostgreSQL Ready)
+# DATABASE
 # ======================
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///db.sqlite3',
         conn_max_age=600,
-        ssl_require=True
+        ssl_require=bool(os.environ.get('RENDER'))
     )
 }
 
@@ -93,13 +101,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else []
 
 # ======================
-# MEDIA FILES
+# CLOUDINARY MEDIA STORAGE
 # ======================
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ======================
 # LOGIN / LOGOUT
@@ -108,7 +120,7 @@ LOGIN_REDIRECT_URL = 'room_list'
 LOGOUT_REDIRECT_URL = 'room_list'
 
 # ======================
-# RENDER SECURITY FIXES
+# SECURITY FOR RENDER
 # ======================
 CSRF_TRUSTED_ORIGINS = [
     "https://roomfinder.onrender.com",

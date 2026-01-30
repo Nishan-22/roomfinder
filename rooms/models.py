@@ -25,8 +25,10 @@ class Room(models.Model):
         ('Biratnagar', 'Biratnagar'),
     ]
 
+    # 👤 Owner of property
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
 
+    # 🏠 Property info
     property_type = models.CharField(
         max_length=20,
         choices=PROPERTY_TYPE_CHOICES,
@@ -39,22 +41,27 @@ class Room(models.Model):
     location = models.CharField(max_length=50, choices=LOCATION_CHOICES)
     room_type = models.CharField(max_length=20, choices=ROOM_TYPE_CHOICES)
 
+    # 📞 Contact
     owner_name = models.CharField(max_length=100)
     contact_number = models.CharField(max_length=15)
-    available_from = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
 
-    # ⭐ COVER IMAGE (main image)
+    # 📅 Availability
+    available_from = models.DateField()
+
+    # 🖼 Main cover image (optional)
     image = models.ImageField(upload_to='rooms/', blank=True, null=True)
+
+    # ⏱ Created time
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.property_type} - {self.title}"
 
 
-# 🖼 MULTIPLE IMAGES MODEL (Gallery)
+# 🖼 Gallery Images (Multiple photos per room)
 class RoomImage(models.Model):
     room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='rooms/gallery/')
+    image = models.ImageField(upload_to='rooms/')
 
     def __str__(self):
         return f"Image for {self.room.title}"

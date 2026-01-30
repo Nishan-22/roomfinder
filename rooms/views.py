@@ -1,20 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Room,RoomImage
-from .forms import RoomForm, RegisterForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.db.models import Q
-from django.http import HttpResponseRedirect
+
+from .models import Room, RoomImage
+from .forms import RoomForm, RegisterForm
 
 
+# 🏠 ROOM LIST + SEARCH
 def room_list(request):
     rooms = Room.objects.all().order_by('-created_at')
 
     search_query = request.GET.get('q')
     property_type = request.GET.get('property')
 
-    # 🔥 FIX: ignore empty or "None"
     if search_query and search_query.lower() != "none":
         rooms = rooms.filter(
             Q(title__icontains=search_query) |
@@ -34,14 +34,13 @@ def room_list(request):
     return render(request, 'rooms/room_list.html', context)
 
 
-
-# 🟢 PROPERTY DETAIL
+# 🔍 ROOM DETAIL
 def room_detail(request, id):
     room = get_object_or_404(Room, id=id)
     return render(request, 'rooms/room_detail.html', {'room': room})
 
 
-# ➕ ADD PROPERTY
+# ➕ ADD ROOM
 @login_required
 def add_room(request):
     if request.method == 'POST':
@@ -53,17 +52,21 @@ def add_room(request):
             room.owner = request.user
             room.save()
 
+            # Save gallery images
             for img in images:
                 RoomImage.objects.create(room=room, image=img)
 
             return redirect('room_list')
+        else:
+            print(form.errors)  # DEBUG if something fails
+
     else:
         form = RoomForm()
 
     return render(request, 'rooms/room_form.html', {'form': form})
 
 
-# ✏ EDIT PROPERTY
+# ✏ EDIT ROOM
 @login_required
 def edit_room(request, id):
     room = get_object_or_404(Room, id=id, owner=request.user)
@@ -75,22 +78,26 @@ def edit_room(request, id):
         if form.is_valid():
             form.save()
 
-            # ✅ ADD NEW IMAGES
+            # Add new images
             for img in images:
                 RoomImage.objects.create(room=room, image=img)
 
-            # ✅ DELETE CHECKED IMAGES
+            # Delete checked images
             delete_ids = request.POST.getlist('delete_images')
             if delete_ids:
                 RoomImage.objects.filter(id__in=delete_ids, room=room).delete()
 
             return redirect('room_detail', id=room.id)
+        else:
+            print(form.errors)
+
     else:
         form = RoomForm(instance=room)
 
     return render(request, 'rooms/room_form.html', {'form': form})
 
-# ❌ DELETE PROPERTY
+
+# ❌ DELETE ROOM
 @login_required
 def delete_room(request, id):
     room = get_object_or_404(Room, id=id, owner=request.user)
@@ -115,7 +122,7 @@ def register(request):
     return render(request, 'auth/register.html', {'form': form})
 
 
-# 🔐 LOGIN VIEW
+# 🔐 LOGIN
 class CustomLoginView(LoginView):
     template_name = 'auth/login.html'
 
@@ -128,6 +135,7 @@ def logout_confirm(request):
     return render(request, 'auth/logout_confirm.html')
 
 
+# 📊 USER DASHBOARD
 @login_required
 def dashboard(request):
     my_properties = Room.objects.filter(owner=request.user).order_by('-created_at')
@@ -136,4 +144,3 @@ def dashboard(request):
         'my_properties': my_properties
     }
     return render(request, 'rooms/dashboard.html', context)
-
