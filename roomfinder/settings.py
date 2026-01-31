@@ -56,16 +56,15 @@ ALLOWED_HOSTS = ['*']  # or your render domain
 # ======================
 # cloudinary_storage must come BEFORE django.contrib.staticfiles (per django-cloudinary-storage docs)
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
     'cloudinary',
-
-    'whitenoise.runserver_nostatic',
 
     # Your app
     'rooms',
@@ -139,12 +138,23 @@ USE_TZ = True
 # ======================
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# ======================
-# CLOUDINARY MEDIA STORAGE (images on Render)
-# ======================
-# Django 4.2+ uses STORAGES; DEFAULT_FILE_STORAGE is ignored, so set STORAGES['default'].
+# Use Whitenoise's recommended storage for Render
+# We use CompressedStaticFilesStorage to avoid manifest issues while still getting compression
+STORAGES = {
+    'default': {
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+    },
+}
+
+# This prevents build failure if some files (like admin icons) are missing
+WHITENOISE_MANIFEST_STRICT = False
+
+# Media settings
 if USE_CLOUDINARY:
     CLOUDINARY_STORAGE = {
         'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
@@ -152,16 +162,7 @@ if USE_CLOUDINARY:
         'API_SECRET': CLOUDINARY_API_SECRET,
         'SECURE': True,
     }
-    STORAGES = {
-        'default': {
-            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
-        },
-        'staticfiles': {
-            'BACKEND': 'whitenoise.storage.StaticFilesStorage',
-        },
-    }
 else:
-    # Local dev fallback when env vars not set
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
